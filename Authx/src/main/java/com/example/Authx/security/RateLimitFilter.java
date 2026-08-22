@@ -1,6 +1,7 @@
 package com.example.Authx.security;
 
 import com.example.Authx.services.RateLimitService;
+import com.example.Authx.services.SuspiciousLoginService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.ObjectMapper;
@@ -22,6 +24,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
     private final ObjectMapper objectMapper;
+    private final JavaMailSender mailSender;
     @Override
     protected void doFilterInternal(HttpServletRequest request
             , HttpServletResponse response
@@ -41,38 +44,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                 "please wait 15 min before trying again.",
                         rateLimitService.remainingTokens(bucket)
                 );
-                return;
+
+                return ;
             }
 
 
         }
-//        if("POST".equalsIgnoreCase(method) && uri.equals("api/v1/auth/forget-password")){
-//            Bucket bucket = rateLimitService.getForgetPasswordBucket(ip);
-//
-//            if(!rateLimitService.tryConsume(bucket)){
-//                sendBlockedResponse(
-//                        response,"Too many password reset requests. " +
-//                                "Please wait 1 hour.", rateLimitService.remainingTokens(bucket)
-//                );
-//                return;
-//            }
-//        }
-
-
-//        if ("POST".equalsIgnoreCase(method)&&
-//        uri.equals("/api/v1/auth/register")){
-//            Bucket bucket = rateLimitService.getRegisterBucket(ip);
-//            if(!rateLimitService.tryConsume(bucket)){
-//                sendBlockedResponse(
-//                        response,
-//                        "Too many registration attempts. " +
-//                                "Please wait 1 hour.",
-//                        rateLimitService.remainingTokens(bucket)
-//                );
-//                return;
-//            }
-//        }
-
         filterChain.doFilter(request,response);
     }
 

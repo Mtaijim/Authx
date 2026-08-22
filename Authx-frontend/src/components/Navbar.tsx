@@ -4,19 +4,22 @@ import { NavLink, useNavigate } from "react-router";
 import { isAdmin } from "@/utils/roles";
 import { ThemeToggle } from "./ThemeToggle.tsx";
 import {
-  User, History, Building2,
-  Shield, Lock, AlertTriangle
+  User,
+  History,
+  Building2,
+  Shield,
+  Lock,
+  AlertTriangle,
 } from "lucide-react";
 
 const Navbar = () => {
   const checkLogin = useAuthStore((state) => state.checkLogin);
-  const user       = useAuthStore((state) => state.user);
-  const logout     = useAuthStore((state) => state.logout);
-  const navigate   = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
 
   return (
     <nav className="flex justify-between items-center px-6 py-3 border-b border-border bg-background text-foreground">
-
       {/* ── Logo ── */}
       <NavLink to="/dashboard">
         <span className="rounded border border-border bg-card px-4 py-1.5 text-sm font-bold tracking-wide shadow-sm">
@@ -26,10 +29,9 @@ const Navbar = () => {
 
       {/* ── Nav links ── */}
       <div className="flex items-center gap-4">
+        {<ThemeToggle />}
         {checkLogin() ? (
           <>
-            <ThemeToggle />
-
             {/* Profile avatar */}
             <NavLink to="/dashboard/profile">
               {user?.image ? (
@@ -117,7 +119,10 @@ const Navbar = () => {
             )}
 
             <Button
-              onClick={() => { logout(); navigate("/"); }}
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
               size="sm"
               variant="outline"
               className="cursor-pointer"

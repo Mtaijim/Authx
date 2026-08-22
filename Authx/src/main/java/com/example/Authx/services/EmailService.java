@@ -171,7 +171,7 @@ public void sendSuspiciousLoginAlert(
                 message,true,"UTF-8"
         );
 
-        helper.setText(fromEmail);
+        helper.setFrom(fromEmail);
         helper.setTo(toEmail);
         helper.setSubject("verify your Login - Authx Security");
 
@@ -239,5 +239,85 @@ public void sendSuspiciousLoginAlert(
     } catch (MessagingException e) {
         throw new RuntimeException(e);
     }
+    }
+
+    public void sendAccountLockedEmail(String toEmail, String name, int lockoutMinutes) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message, true, "UTF-8"
+            );
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(
+                    "🔒 Your AuthX account has been locked"
+            );
+
+            String html = """
+            <div style="font-family: Arial, sans-serif;
+                        max-width: 600px; margin: 0 auto;
+                        padding: 20px;">
+
+              <h2 style="color: #e74c3c;">
+                Account Temporarily Locked
+              </h2>
+
+              <p>Hi <strong>%s</strong>,</p>
+
+              <p>Your <strong>AuthX</strong> account has been
+                 temporarily locked due to too many failed
+                 login attempts.</p>
+
+              <div style="background: #fff3f3;
+                          border-left: 4px solid #e74c3c;
+                          padding: 16px;
+                          border-radius: 4px;
+                          margin: 20px 0;">
+                <p style="margin: 4px 0; color: #c0392b;">
+                  <strong>Locked for:</strong> %d minutes
+                </p>
+                <p style="margin: 4px 0; color: #555;">
+                  Your account will automatically unlock
+                  after %d minutes.
+                </p>
+              </div>
+
+              <p>If this wasn't you, reset your password
+                 immediately:</p>
+
+              <a href="%s/forgot-password"
+                 style="display: inline-block;
+                        background: #e74c3c;
+                        color: white;
+                        padding: 12px 24px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-weight: bold;">
+                Reset Password
+              </a>
+
+              <p style="color: #888; font-size: 12px;
+                         margin-top: 30px;">
+                AuthX Security Team
+              </p>
+            </div>
+        """.formatted(
+                    name != null ? name : "User",
+                    lockoutMinutes,
+                    lockoutMinutes,
+                    frontendUrl
+            );
+
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Account locked email sent to: {}", toEmail);
+
+        } catch (MessagingException e) {
+            log.error("Failed to send locked email: {}",
+                    e.getMessage());
+        }
+
+
     }
 }

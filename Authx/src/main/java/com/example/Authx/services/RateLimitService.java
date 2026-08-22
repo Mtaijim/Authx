@@ -25,7 +25,7 @@ public class RateLimitService {
     public Bucket getLoginBucket(String ip ){
         return loginBuckets.computeIfAbsent(
                 ip,
-                key-> buildBucket(5, Duration.ofMinutes(15))
+                key-> buildBucket(6, Duration.ofMinutes(15))
         );
     }
 

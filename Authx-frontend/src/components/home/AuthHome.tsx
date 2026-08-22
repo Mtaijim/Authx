@@ -1,206 +1,598 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import {
-  ShieldCheck,
-  Lock,
-  UsersRound,
-  Sparkles,
   ArrowRight,
-  Bolt,
-  UserRound,
-  Key,
-  Code,
+  UsersRound,
+  Copy,
+  Check,
+  ShieldCheck,
+  KeyRound,
+  LockKeyhole,
+  RefreshCw,
+  Eye,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-const AuthHome = () => {
+
+type JwtToken = {
+  header: {
+    alg: string;
+    typ: string;
+  };
+  payload: {
+    sub: string;
+    role: string;
+    exp: string;
+  };
+};
+
+const createToken = (): JwtToken => ({
+  header: {
+    alg: "HS256",
+    typ: "JWT",
+  },
+  payload: {
+    sub: `user_${Math.floor(1000 + Math.random() * 9000)}`,
+    role: Math.random() > 0.5 ? "admin" : "user",
+    exp: `${Math.floor(1000 + Math.random() * 3000)}s`,
+  },
+});
+
+const encode = (obj: object) => {
+  return btoa(JSON.stringify(obj)).replace(/=/g, "").slice(0, 30) + "...";
+};
+
+const AuthHomeHero = () => {
   const navigate = useNavigate();
+
+  const [token, setToken] = useState<JwtToken>(createToken());
+
+  const [activeTab, setActiveTab] = useState<
+    "encoded" | "header" | "payload" | "signature"
+  >("encoded");
+
+  const [copied, setCopied] = useState(false);
+
+  const [password, setPassword] = useState("");
+
+  /* JWT */
+
+  const encodedToken = useMemo(() => {
+    return `${encode(token.header)}.${encode(token.payload)}.4f9a1c`;
+  }, [token]);
+
+  const generateToken = () => {
+    setToken(createToken());
+    setActiveTab("encoded");
+    setCopied(false);
+  };
+
+  const copyToken = async () => {
+    await navigator.clipboard.writeText(encodedToken);
+
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 1500);
+  };
+
+  /* Password strength */
+
+  const passwordStrength = useMemo(() => {
+    if (!password) {
+      return {
+        label: "Enter password",
+        score: 0,
+        requirements: [],
+      };
+    }
+
+    let score = 0;
+
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    let label = "Weak";
+
+    if (score >= 4) {
+      label = "Strong";
+    } else if (score >= 2) {
+      label = "Medium";
+    }
+
+    return {
+      label,
+      score,
+      requirements: [
+        {
+          text: "8+ characters",
+          valid: password.length >= 8,
+        },
+        {
+          text: "12+ characters",
+          valid: password.length >= 12,
+        },
+        {
+          text: "Uppercase letter",
+          valid: /[A-Z]/.test(password),
+        },
+        {
+          text: "Number",
+          valid: /[0-9]/.test(password),
+        },
+        {
+          text: "Special character",
+          valid: /[^A-Za-z0-9]/.test(password),
+        },
+      ],
+    };
+  }, [password]);
+
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative py-28 px-6 text-center flex flex-col items-center justify-center">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold tracking-tight"
-        >
-          Ship Features. We'll Handle Security.
-        </motion.h1>
+    <section className="relative min-h-screen overflow-hidden px-6 py-24">
+      {/* Background */}
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8 }}
-          className="mt-6 max-w-2xl text-lg md:text-xl text-muted-foreground"
-        >
-          Built for developers who demand seamless security, lightning-fast
-          authentication, and enterprise-grade protection.
-        </motion.p>
+      <div
+        className="
+          pointer-events-none
+          absolute inset-0
+          opacity-[0.03]
+          bg-[linear-gradient(to_right,#888_1px,transparent_1px),linear-gradient(to_bottom,#888_1px,transparent_1px)]
+          bg-[size:40px_40px]
+        "
+      />
+
+      <div className="relative z-10 max-w-5xl mx-auto">
+        {/* Status */}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="mt-10 flex gap-4"
+          className="flex justify-center mb-8"
         >
-          <Button
-            size="lg"
-            className="rounded text-lg font-semibold px-6"
-            onClick={() => navigate("/login")}
-          >
-            {" "}
-            Get Started ➜
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded text-lg font-semibold px-6 flex items-center gap-2"
-          >
-            Learn More
-          </Button>
-        </motion.div>
-      </section>
-      {/* Features Section */}
-      <section>
-        <h2 className="text-4xl font-bold text-center mb-16 px-10">
-          Everything You Need for Secure Authentication
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {[
-            {
-              title: "JWT Security",
-              desc: "Access and refresh token authentication built with Spring Security and JWT.",
-              icon: <Lock className="w-10 h-10" />,
-            },
-            {
-              title: "Social Authentication",
-              desc: "One-click login using Google and GitHub OAuth2 providers.",
-              icon: <UsersRound className="w-10 h-10" />,
-            },
-            {
-              title: "RBAC Authorization",
-              desc: "Admin and User roles with endpoint-level access control.",
-              icon: <ShieldCheck className="w-10 h-10" />,
-            },
-          ].map((f, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: i * 0.2 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-card/70 backdrop-blur-xl border-border rounded-2xl shadow-lg">
-                <CardContent className="p-10 text-center">
-                  <div className="flex justify-center mb-6 text-primary">
-                    {f.icon}
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-3">{f.title}</h3>
-                  <p className="text-muted-foreground">{f.desc}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-      <section className="max-w-4xl mx-auto px-6 mb-20 mt-20">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-2">Why AuthX?</h2>
-          <p className="text-muted-foreground">
-            Built for developers, designed for scale.
-          </p>
-        </div>
+          <div className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            {
-              icon: <Bolt className="w-5 h-5 text-blue-600" />,
-              title: "Stateless JWT sessions",
-              desc: "No server-side session storage. Scales horizontally without extra infrastructure.",
-            },
-            {
-              icon: <UserRound className="w-5 h-5 text-purple-600" />,
-              title: "OAuth2 social login",
-              desc: "Let users sign in with Google or GitHub — zero friction onboarding experience.",
-            },
-            {
-              icon: <Key className="w-5 h-5 text-emerald-600" />,
-              title: "Role-based access control",
-              desc: "Protect any endpoint with granular admin and user role permissions.",
-            },
-            {
-              icon: <Code className="w-5 h-5 text-amber-600" />,
-              title: "Developer first",
-              desc: "Clean Spring Boot integration. Drop it into your existing project in minutes.",
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="flex gap-4 p-5 bg-card border border-border rounded-xl hover:shadow-sm transition-shadow"
-            >
-              <div className="mt-0.5 flex-shrink-0">{item.icon}</div>
-              <div>
-                <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="py-10 px-6 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/3 pointer-events-none" />
+            <span className="text-muted-foreground">
+              Authentication system operational
+            </span>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 max-w-2xl mx-auto"
-        >
-          <div
-            className="w-16 h-16 rounded-full border-2 border-primary/20
-            flex items-center justify-center mx-auto mb-6 bg-primary/5"
-          >
-            <ShieldCheck className="w-7 h-7 text-primary" />
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
           </div>
+        </motion.div>
 
-          <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-            Start securing your app today
-          </h2>
-          <p className="mt-4 text-muted-foreground text-lg">
-            Join thousands of developers already shipping with AuthX.
-          </p>
+        {/* Hero */}
 
-          <div className="mt-8 flex flex-wrap gap-3 justify-center">
+        <div className="text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="
+              text-5xl
+              md:text-7xl
+              font-bold
+              tracking-tight
+            "
+          >
+            Ship Features.
+            <br />
+            <span className="text-primary">We'll Handle Security.</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.2,
+              duration: 0.7,
+            }}
+            className="
+              mt-6
+              max-w-2xl
+              mx-auto
+              text-lg
+              md:text-xl
+              text-muted-foreground
+            "
+          >
+            Built for developers who demand seamless security, lightning-fast
+            authentication, and enterprise-grade protection.
+          </motion.p>
+
+          {/* Buttons */}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.4,
+              duration: 0.7,
+            }}
+            className="mt-10 flex flex-wrap justify-center gap-4"
+          >
             <Button
               size="lg"
-              className="rounded-xl px-8 text-base font-semibold gap-2 group"
-              onClick={() => navigate("/signup")}
+              className="rounded-xl px-7 text-lg font-semibold group"
+              onClick={() => navigate("/login")}
             >
-              Create free account
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              Get Started
+              <ArrowRight
+                className="
+                  ml-2
+                  h-5
+                  w-5
+                  transition-transform
+                  group-hover:translate-x-1
+                "
+              />
             </Button>
+
             <Button
               variant="outline"
               size="lg"
-              className="rounded-xl px-8 text-base font-semibold gap-2"
+              className="rounded-xl px-7 text-lg font-semibold"
+              onClick={() =>
+                document.getElementById("jwt-demo")?.scrollIntoView({
+                  behavior: "smooth",
+                })
+              }
             >
-              <UsersRound className="w-4 h-4" />
-              View on GitHub
+              Explore Security
             </Button>
-          </div>
-        </motion.div>
-      </section>
+          </motion.div>
+        </div>
 
-      {/* Footer */}
-      <footer className="py-10 text-center text-muted-foreground border-t border-border">
-        © {new Date().getFullYear()} AuthX. All rights reserved.
-      </footer>
-    </div>
+        {/* JWT Demo */}
+
+        <motion.div
+          id="jwt-demo"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: 0.6,
+            duration: 0.7,
+          }}
+          className="mt-20 max-w-3xl mx-auto"
+        >
+          <Card className="bg-card/70 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+            <CardContent className="p-0">
+              {/* Header */}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+
+                  <div>
+                    <p className="font-semibold">JWT Security</p>
+
+                    <p className="text-xs text-muted-foreground">
+                      Interactive token demo
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={generateToken}
+                    className="gap-2"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Generate
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={copyToken}
+                    className="gap-2"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Tabs */}
+
+              <div className="flex gap-2 p-4 border-b overflow-x-auto">
+                {["encoded", "header", "payload", "signature"].map((tab) => (
+                  <Button
+                    key={tab}
+                    size="sm"
+                    variant={activeTab === tab ? "default" : "outline"}
+                    onClick={() =>
+                      setActiveTab(
+                        tab as "encoded" | "header" | "payload" | "signature",
+                      )
+                    }
+                    className="capitalize"
+                  >
+                    {tab}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Content */}
+
+              <div className="p-6 min-h-[220px]">
+                <AnimatePresence mode="wait">
+                  {/* Encoded */}
+
+                  {activeTab === "encoded" && (
+                    <motion.div
+                      key="encoded"
+                      initial={{
+                        opacity: 0,
+                        x: -10,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        x: 0,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        x: 10,
+                      }}
+                    >
+                      <p className="text-xs text-muted-foreground mb-3">
+                        ENCODED JWT
+                      </p>
+
+                      <div
+                        className="
+                        rounded-xl
+                        bg-muted/50
+                        border
+                        p-4
+                        font-mono
+                        text-sm
+                        break-all
+                        text-primary
+                      "
+                      >
+                        {encodedToken}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Header */}
+
+                  {activeTab === "header" && (
+                    <motion.div
+                      key="header"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <p className="text-xs text-muted-foreground mb-3">
+                        HEADER
+                      </p>
+
+                      <pre className="rounded-xl bg-muted/50 border p-5 text-sm">
+                        {JSON.stringify(token.header, null, 2)}
+                      </pre>
+                    </motion.div>
+                  )}
+
+                  {/* Payload */}
+
+                  {activeTab === "payload" && (
+                    <motion.div
+                      key="payload"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <p className="text-xs text-muted-foreground mb-3">
+                        PAYLOAD
+                      </p>
+
+                      <pre className="rounded-xl bg-muted/50 border p-5 text-sm">
+                        {JSON.stringify(token.payload, null, 2)}
+                      </pre>
+                    </motion.div>
+                  )}
+
+                  {/* Signature */}
+
+                  {activeTab === "signature" && (
+                    <motion.div
+                      key="signature"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <p className="text-xs text-muted-foreground mb-3">
+                        SIGNATURE
+                      </p>
+
+                      <div
+                        className="
+                        rounded-xl
+                        border
+                        bg-emerald-500/10
+                        p-5
+                      "
+                      >
+                        <div className="flex items-center gap-3">
+                          <ShieldCheck className="h-8 w-8 text-emerald-500" />
+
+                          <div>
+                            <p className="font-semibold text-emerald-500">
+                              Signature Verified
+                            </p>
+
+                            <p className="text-sm text-muted-foreground">
+                              HMAC SHA-256 signature matches
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Footer */}
+
+              <div
+                className="
+                flex
+                items-center
+                justify-between
+                border-t
+                px-6
+                py-4
+              "
+              >
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Check className="h-4 w-4 text-emerald-500" />
+                  Token validated
+                </div>
+
+                <span className="font-mono text-xs text-muted-foreground">
+                  HS256
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Password Analyzer */}
+
+        <div className="mt-8 max-w-3xl mx-auto">
+          <Card className="bg-card/60 backdrop-blur-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <KeyRound className="h-5 w-5 text-primary" />
+
+                <div>
+                  <p className="font-semibold">Password Analyzer</p>
+
+                  <p className="text-xs text-muted-foreground">
+                    Check password strength
+                  </p>
+                </div>
+              </div>
+
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter a password..."
+                className="
+                  w-full
+                  rounded-lg
+                  border
+                  bg-background
+                  px-4
+                  py-3
+                  text-sm
+                  outline-none
+                  focus:ring-2
+                  focus:ring-primary/40
+                "
+              />
+
+              {password && (
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                  }}
+                  animate={{
+                    opacity: 1,
+                  }}
+                  className="mt-4"
+                >
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs text-muted-foreground">
+                      Strength
+                    </span>
+
+                    <span className="text-xs font-semibold">
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <div
+                        key={item}
+                        className={`
+                            h-1.5
+                            flex-1
+                            rounded-full
+                            ${
+                              item <= passwordStrength.score
+                                ? "bg-primary"
+                                : "bg-muted"
+                            }
+                          `}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {passwordStrength.requirements.map((requirement) => (
+                      <div
+                        key={requirement.text}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        {requirement.valid ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        ) : (
+                          <span className="h-3.5 w-3.5 rounded-full border" />
+                        )}
+
+                        <span>{requirement.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom CTA */}
+
+        <div className="mt-10 flex flex-wrap justify-center gap-3">
+          <Button
+            size="lg"
+            className="rounded-xl px-8 gap-2 group"
+            onClick={() => navigate("/signup")}
+          >
+            Create free account
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-xl px-8 gap-2"
+            onClick={() => window.open("https://github.com", "_blank")}
+          >
+            <UsersRound className="h-4 w-4" />
+            View on GitHub
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 };
 
-export default AuthHome;
+export default AuthHomeHero;

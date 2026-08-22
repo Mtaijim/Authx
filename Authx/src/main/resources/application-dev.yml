@@ -43,6 +43,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
 server:
   error:
     include-message: always
@@ -77,4 +78,4 @@ app:
   cors:
     front-end-url: http://localhost:5173
   mail:
-    from: mhdtaijim9373@gmail.com
+    from: my.csproject.12@gmail.com
