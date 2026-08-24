@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AuthxApplication" type="Application" factoryName="Application" activateToolWindowBeforeRun="false" nameIsGenerated="true">
     <option name="envFilePaths">
-      <option value="C:\Users\Mohammadtaijim\OneDrive\Documents\java_spring_security\Authx\src\.env" />
+      <option value="C:\Users\Mohammadtaijim\OneDrive\Documents\java_spring_security\Authx\.env" />
     </option>
     <option name="MAIN_CLASS_NAME" value="com.example.Authx.AuthxApplication" />
     <module name="Authx" />

@@ -39,20 +39,17 @@ function rejectQueue() {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Guard against network errors where error.response is undefined
     const is401 = error.response?.status === 401;
     const original = error.config;
-    // In your ApiClient.ts response interceptor, inside the error handler:
+
     if (error.response?.status === 403) {
-      // Don't retry or refresh — user is authenticated but lacks permission
-      return Promise.reject(error); // let the calling component handle it
+      return Promise.reject(error);
     }
 
     if (!is401 || original._retry) {
       return Promise.reject(error);
     }
 
-    // Queue concurrent 401s while a refresh is already in flight
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         queueRequest((newToken: string) => {
@@ -63,7 +60,6 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Mark this request so it won't loop if the retry also gets a 401
     original._retry = true;
     isRefreshing = true;
 
@@ -73,15 +69,12 @@ apiClient.interceptors.response.use(
 
       if (!newToken) throw new Error("No new access token received");
 
-      // Persist the new token and unblock the queue
       useAuthStore.getState().setAccessToken(newToken);
       resolveQueue(newToken);
 
-      // Retry the original request with the fresh token
       original.headers.Authorization = `Bearer ${newToken}`;
       return apiClient(original);
     } catch (refreshError) {
-      // Refresh failed — drop the queue and force a logout
       rejectQueue();
       useAuthStore.getState().clearAuth();
       return Promise.reject(refreshError);
