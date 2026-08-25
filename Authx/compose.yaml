@@ -1,0 +1,31 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: authx-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: authxdb
+    networks:
+      - authx-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  authx:
+    build: .
+    container_name: authx-app
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    networks:
+      - authx-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  authx-network:
+    driver: bridge
