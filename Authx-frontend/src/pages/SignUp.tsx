@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { ShieldCheck, Mail, Lock, User } from "lucide-react";
-import { FaGithub, FaGoogle } from "react-icons/fa";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
@@ -39,7 +38,6 @@ export default function SignUp() {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    //validation logic can be added here
 
     if (!formData.name || !formData.email || !formData.password) {
       setError("Please fill in all fields.");
@@ -75,7 +73,6 @@ export default function SignUp() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground flex items-center justify-center px-4 py-10">
-      {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.15),transparent_40%)]" />
 
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />

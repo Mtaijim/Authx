@@ -59,13 +59,10 @@ const Login = () => {
 
       toast.success("Login successfull !");
 
-      // const response = await loginUser(loginData)
-      // console.log("User logged in successfully:", response);
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Error logging in:", error);
       const status = error.response?.status;
-      const message = error.response?.data?.message || "Login failed";
       if (status === 401) {
         setError("Invalid email or password.");
 

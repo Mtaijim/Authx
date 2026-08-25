@@ -4,7 +4,7 @@ import {
   getMfaStatus,
   regenerateBackupCodes,
 } from "@/services/MfaServices";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { Card, CardContent } from "./ui/card";
@@ -82,7 +82,13 @@ const MfaSettingCard = () => {
               Two-Factor Authentication
             </p>
           </div>
-          <Badge variant={status?.mfaEnabled ? "secondary" : "outline"}>
+          <Badge
+            className={
+              status?.mfaEnabled
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-600"
+            }
+          >
             {status?.mfaEnabled ? "Enabled" : "Disabled"}
           </Badge>
         </div>

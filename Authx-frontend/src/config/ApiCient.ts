@@ -1,7 +1,6 @@
 import axios from "axios";
 import useAuthStore from "@/auth/store.ts";
 import { refreshToken } from "@/services/Authservice";
-import toast from "react-hot-toast";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1",

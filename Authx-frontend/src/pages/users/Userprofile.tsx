@@ -12,13 +12,11 @@ import {
   LogOut,
   Mail,
   Shield,
-  Phone,
   Globe,
   Calendar,
   CheckCircle,
   XCircle,
   Loader2,
-  Building2,
   Lock,
 } from "lucide-react";
 import useAuthStore from "@/auth/store";

@@ -7,7 +7,7 @@ import { getMfaSetup, verifyMfaSetup } from "@/services/MfaServices";
 import { CheckCircle2, Copy, ShieldCheck } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { data, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
 const MfaSetup = () => {
