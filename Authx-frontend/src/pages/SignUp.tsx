@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ShieldCheck, Mail, Lock, User } from "lucide-react";
+import { ShieldCheck, Mail, Lock, User, Loader2 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
@@ -31,7 +31,6 @@ export default function SignUp() {
     };
 
     setFormData(updatedFormData);
-    console.log("Form data updated:", updatedFormData);
   };
 
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -58,17 +57,15 @@ export default function SignUp() {
       setFormData({ name: "", email: "", password: "" });
       navigate("/check-email", { state: { email: formData.email } });
     } catch (error: any) {
-      console.error("Error registering user:", error);
-      setError(
+      const message =
         error.response?.data?.message ||
-          "An error occurred during registration.",
-      );
-      Toast.error(
-        error.response?.data?.message ||
-          "An error occurred during registration.",
-      );
+        "An error occurred during registration.";
+
+      setError(message);
+      Toast.error(message);
+    } finally {
+      setLoading(false);
     }
-    console.log("Form submitted:", formData);
   };
 
   return (
@@ -166,29 +163,25 @@ export default function SignUp() {
                   />
                 </div>
               </div>
-
-              {/* Confirm Password
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Confirm your password"
-                    className="pl-10"
-                  />
-                </div>
-              </div> */}
+              {/* Error Message */}
+              {error && (
+                <p className="text-sm text-destructive text-center">{error}</p>
+              )}
 
               {/* Submit */}
               <Button
                 type="submit"
                 className="w-full h-11 text-base font-semibold"
+                disabled={loading}
               >
-                Create Account
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </Button>
 
               {/* Divider */}
