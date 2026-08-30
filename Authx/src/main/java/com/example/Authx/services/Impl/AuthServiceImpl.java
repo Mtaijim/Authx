@@ -160,6 +160,7 @@ public class AuthServiceImpl implements AuthService {
 
      String encodedPassword = passwordEncoder.encode(newPassword);
      user.setPassword(encodedPassword);
+     user.resetLockout();
      userRepository.save(user);
 
 //     save to history
