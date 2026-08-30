@@ -10,7 +10,7 @@ type LoginEvents = {
   os: string;
   status: "SUCCESS" | "FAILURE";
   failedReason: string | null;
-  createdAt: string;
+  createdAt: number;
 };
 
 export const LoginHistory = () => {
@@ -21,7 +21,7 @@ export const LoginHistory = () => {
     apiClient
       .get("/auth/history")
       .then((res) => {
-        console.log("History response:", res.data); // ← ADD
+        console.log("History response:", res.data);
         console.log("Length:", res.data.length);
         setEvents(res.data);
       })
@@ -31,8 +31,8 @@ export const LoginHistory = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const formatTime = (dateStr: string) => {
-    const date = new Date(dateStr);
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
     const diffMs = Date.now() - date.getTime();
     const mins = Math.floor(diffMs / 60000);
     const hours = Math.floor(mins / 60);

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 import {
   Pencil,
   LogOut,
@@ -19,132 +20,170 @@ import {
   Loader2,
   Lock,
 } from "lucide-react";
+
 import useAuthStore from "@/auth/store";
 import { updateUser } from "@/services/Authservice";
 import { useNavigate } from "react-router";
 import MfaSettingsCard from "@/components/MfaSettingCard";
 
+const RANDOM_BIOS = [
+  "Building things that make the web a little better.",
+  "Code. Learn. Build. Repeat.",
+  "Turning ideas into useful applications.",
+  "Full-stack developer exploring modern technologies.",
+  "Always learning, always building.",
+  "Passionate about software and problem solving.",
+  "Building secure and scalable applications.",
+  "Developer by day, problem solver by nature.",
+  "Exploring technology one project at a time.",
+  "Turning coffee into code.",
+  "Learning something new with every project.",
+  "Building the future one line at a time.",
+];
+
+const getRandomBio = () => {
+  return RANDOM_BIOS[Math.floor(Math.random() * RANDOM_BIOS.length)];
+};
+
 interface EditForm {
   name: string;
   phone: string;
-  bio: string;
   organization: string;
   timezone: string;
   enable: boolean;
 }
 
 const UserProfile: React.FC = () => {
-  const user = useAuthStore((s) => s.user);
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const changeLocalLoginData = useAuthStore((s) => s.changeLocalLoginData);
-  const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const changeLocalLoginData = useAuthStore(
+    (state) => state.changeLocalLoginData,
+  );
+  const logout = useAuthStore((state) => state.logout);
+
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [bio, setBio] = useState("");
+
   const [form, setForm] = useState<EditForm>({
     name: "",
     phone: "",
-    bio: "",
     organization: "",
     timezone: "",
     enable: false,
   });
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Load user data
   useEffect(() => {
-    if (user) {
-      setForm({
-        name: user.name ?? "",
-        phone: (user as any).phone ?? "",
-        bio: (user as any).bio ?? "",
-        organization: (user as any).organization ?? "",
-        timezone: (user as any).timezone ?? detectedTimezone,
-        enable: user.enable ?? false,
-      });
-    }
+    if (!user) return;
+
+    setForm({
+      name: user.name ?? "",
+      phone: (user as any).phone ?? "",
+      organization: (user as any).organization ?? "",
+      timezone: (user as any).timezone ?? detectedTimezone,
+      enable: user.enable ?? false,
+    });
+
+    setBio(getRandomBio());
   }, [user]);
 
-  const setField = (key: keyof EditForm, value: string | boolean) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // Update form fields
+  const setField = (field: keyof EditForm, value: string | boolean) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
-  const onEdit = () => {
-    if (user) {
-      setForm({
-        name: user.name ?? "",
-        phone: (user as any).phone ?? "",
-        bio: (user as any).bio ?? "",
-        organization: (user as any).organization ?? "",
-        timezone: (user as any).timezone ?? detectedTimezone,
-        enable: user.enable ?? false,
-      });
-    }
+  // Open edit mode
+  const handleEdit = () => {
+    if (!user) return;
+
+    setForm({
+      name: user.name ?? "",
+      phone: (user as any).phone ?? "",
+      organization: (user as any).organization ?? "",
+      timezone: (user as any).timezone ?? detectedTimezone,
+      enable: user.enable ?? false,
+    });
+
     setError(null);
     setIsEditing(true);
   };
 
-  const onCancel = () => {
+  // Cancel editing
+  const handleCancel = () => {
     setIsEditing(false);
     setError(null);
   };
 
-  const onSave = async () => {
+  // Save user changes
+  const handleSave = async () => {
     if (!user) return;
+
     setIsSaving(true);
     setError(null);
+
     try {
-      const serverUser = await updateUser(user.id, form);
-      changeLocalLoginData(accessToken ?? "", serverUser, true);
+      const updatedUser = await updateUser(user.id, form);
+
+      changeLocalLoginData(accessToken ?? "", updatedUser, true);
+
       setIsEditing(false);
-    } catch (err) {
-      console.error("Failed to update user:", err);
+    } catch (error) {
+      console.error("Failed to update user:", error);
       setError("Failed to save changes. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const onSignOut = () => {
-    (logout as any)?.();
+  // Logout
+  const handleSignOut = () => {
+    logout?.();
     navigate("/login");
   };
 
-  const initials = (user?.name || user?.email || "U")
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  const initials = (user.name || user.email || "U")
     .split(" ")
-    .map((n) => n[0])
+    .map((name) => name[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 
-  const memberSince = (user as any)?.createdAt
-    ? new Date((user as any).createdAt).toLocaleDateString("en-US", {
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
     : null;
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* Top navigation bar */}
+      {/* Header */}
       <div className="bg-background border-b sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-base font-semibold">Account Settings</h1>
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={onSignOut}
-            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            onClick={handleSignOut}
+            className="text-muted-foreground hover:text-destructive"
           >
             <LogOut className="w-4 h-4 mr-1.5" />
             Sign out
@@ -153,12 +192,11 @@ const UserProfile: React.FC = () => {
       </div>
 
       <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
-        {/* ── Profile header card ── */}
+        {/* Profile */}
         <Card>
           <CardContent className="pt-6 pb-5">
             <div className="flex items-start gap-4">
-              {/* Avatar */}
-              <Avatar className="w-16 h-16 shrink-0 ring-2 ring-background shadow-sm">
+              <Avatar className="w-16 h-16 shrink-0">
                 {user.image ? (
                   <AvatarImage src={user.image} alt={user.name} />
                 ) : (
@@ -168,43 +206,45 @@ const UserProfile: React.FC = () => {
                 )}
               </Avatar>
 
-              {/* Name + meta */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg font-semibold leading-tight truncate">
+                  <h2 className="text-lg font-semibold truncate">
                     {user.name || "Unnamed User"}
                   </h2>
+
                   <Badge
                     variant="secondary"
                     className={
                       user.enable
-                        ? "text-green-700 bg-green-50 border border-green-200 text-xs"
-                        : "text-muted-foreground text-xs"
+                        ? "text-green-700 bg-green-50 border-green-200"
+                        : "text-muted-foreground"
                     }
                   >
                     {user.enable ? "Active" : "Inactive"}
                   </Badge>
                 </div>
 
-                <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                <p className="text-sm text-muted-foreground mt-1 truncate">
                   {user.email}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3 mt-2">
+                <div className="flex flex-wrap gap-3 mt-2">
                   {user.roles?.[0]?.name && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Shield className="w-3 h-3" />
                       {user.roles[0].name}
                     </span>
                   )}
+
                   {user.provider && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground capitalize">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground capitalize">
                       <Globe className="w-3 h-3" />
                       {user.provider}
                     </span>
                   )}
+
                   {memberSince && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="w-3 h-3" />
                       Joined {memberSince}
                     </span>
@@ -212,14 +252,8 @@ const UserProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Edit button */}
               {!isEditing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onEdit}
-                  className="shrink-0"
-                >
+                <Button variant="outline" size="sm" onClick={handleEdit}>
                   <Pencil className="w-3.5 h-3.5 mr-1.5" />
                   Edit
                 </Button>
@@ -227,84 +261,89 @@ const UserProfile: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        {/* ── Personal information card ── */}
+
+        {/* Personal Information */}
         <Card>
           <CardContent className="pt-5 pb-6 space-y-5">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Personal Information
             </p>
+
             <Separator />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Full name */}
+              {/* Name */}
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-sm">
-                  Full Name
-                </Label>
+                <Label htmlFor="name">Full Name</Label>
+
                 <Input
                   id="name"
                   value={isEditing ? form.name : user.name || ""}
                   onChange={(e) => setField("name", e.target.value)}
                   readOnly={!isEditing}
                   placeholder="Your full name"
-                  className={!isEditing ? "bg-muted/50 cursor-default" : ""}
+                  className={!isEditing ? "bg-muted/50" : ""}
                 />
               </div>
 
-              {/* Email — always read-only */}
+              {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm">
-                  Email Address
-                </Label>
+                <Label htmlFor="email">Email Address</Label>
+
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
                   <Input
                     id="email"
                     value={user.email}
                     readOnly
-                    className="bg-muted/50 cursor-default pl-9"
+                    className="bg-muted/50 pl-9"
                   />
                 </div>
               </div>
-
-              {/* Timezone */}
             </div>
 
-            {/* Bio — full width */}
+            {/* Bio */}
             <div className="space-y-1.5">
-              <Label htmlFor="bio" className="text-sm">
-                Bio
-              </Label>
+              <Label htmlFor="bio">Bio</Label>
+
               <Textarea
                 id="bio"
-                value={isEditing ? form.bio : (user as any).bio || ""}
-                onChange={(e) => setField("bio", e.target.value)}
-                readOnly={!isEditing}
-                placeholder="Tell your team a little about yourself…"
+                value={bio}
+                readOnly
                 rows={3}
-                className={`resize-none ${!isEditing ? "bg-muted/50 cursor-default" : ""}`}
+                className="resize-none bg-muted/50"
               />
+
+              <p className="text-xs text-muted-foreground">
+                Bio is automatically generated.
+              </p>
             </div>
 
-            {/* Error banner */}
+            {/* Error */}
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2.5">
-                <XCircle className="w-4 h-4 shrink-0" />
+                <XCircle className="w-4 h-4" />
                 {error}
               </div>
             )}
 
-            {/* Edit-mode action buttons */}
+            {/* Save / Cancel */}
             {isEditing && (
-              <div className="flex justify-end gap-2 pt-1">
-                <Button variant="ghost" onClick={onCancel} disabled={isSaving}>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
                   Cancel
                 </Button>
-                <Button onClick={onSave} disabled={isSaving}>
+
+                <Button onClick={handleSave} disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving…
+                      Saving...
                     </>
                   ) : (
                     <>
@@ -317,15 +356,17 @@ const UserProfile: React.FC = () => {
             )}
           </CardContent>
         </Card>
-        {/* ── Account details (read-only) ── */}
+
+        {/* Account Details */}
         <Card>
           <CardContent className="pt-5 pb-6 space-y-5">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Account Details
             </p>
+
             <Separator />
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-5 gap-x-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Provider</p>
                 <p className="font-medium capitalize">{user.provider || "—"}</p>
@@ -333,7 +374,7 @@ const UserProfile: React.FC = () => {
 
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Role</p>
-                <p className="font-medium">{user.roles?.[0]?.name ?? "—"}</p>
+                <p className="font-medium">{user.roles?.[0]?.name || "—"}</p>
               </div>
 
               {memberSince && (
@@ -348,9 +389,11 @@ const UserProfile: React.FC = () => {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Status</p>
                 <p
-                  className={`font-medium ${
-                    user.enable ? "text-green-600" : "text-muted-foreground"
-                  }`}
+                  className={
+                    user.enable
+                      ? "font-medium text-green-600"
+                      : "font-medium text-muted-foreground"
+                  }
                 >
                   {user.enable ? "Active" : "Inactive"}
                 </p>
@@ -358,28 +401,33 @@ const UserProfile: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        {/* ── MFA settings ── */} {/* ✅ ADD THIS */}
+
+        {/* MFA */}
         <MfaSettingsCard />
-        {/* ── Sign out card ── */}
+
+        {/* Sign Out */}
         <Card className="border-destructive/20">
-          <CardContent className="pt-5 pb-5">
+          <CardContent className="py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center">
                   <Lock className="w-4 h-4 text-destructive" />
                 </div>
+
                 <div>
                   <p className="text-sm font-medium">Sign out</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+
+                  <p className="text-xs text-muted-foreground">
                     You'll need to log back in to continue.
                   </p>
                 </div>
               </div>
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onSignOut}
-                className="shrink-0 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-colors"
+                onClick={handleSignOut}
+                className="border-destructive/30 text-destructive hover:bg-destructive/10"
               >
                 <LogOut className="w-4 h-4 mr-1.5" />
                 Sign out
