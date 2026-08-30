@@ -63,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //          is this token is blacklisted ?
           if(tokenBlacklistService.isBlacklisted(jti)){
               request.setAttribute(
-                      "error","Toen has been revoked"
+                      "error","Token has been revoked"
               );
               filterChain.doFilter(request,response);
               return;

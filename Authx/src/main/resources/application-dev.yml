@@ -31,18 +31,13 @@ spring:
             scope:
              - user:email
              - read:user
-
-  mail:
-    host: smtp-relay.brevo.com
-    port: 587
-    username: ${BREVO_SMTP_LOGIN}
-    password: ${BREVO_SMTP_KEY}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+brevo:
+  api:
+    url: https://api.brevo.com/v3/smtp/email
+    key: ${BREVO_API_KEY}
+  sender:
+    email: ${FROM_EMAIL}
+    name: Authx
 
 server:
   error:
