@@ -800,7 +800,7 @@ docker run -p 8080:8080 --env-file .env authx-backend
 
 | Setting | Value | Location |
 |---|---|---|
-| Login rate limit | 6 per 15 min per IP | `RateLimitService` |
+| Login rate limit | 4 per 15 min per IP | `RateLimitService` |
 | Lockout threshold / duration | 5 failures / 15 min | `AccountLockoutService` |
 | MFA token lifetime | 5 min | `JwtService` |
 | Email verification lifetime | 24 h | `AuthServiceImpl` |
