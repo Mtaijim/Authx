@@ -11,7 +11,7 @@
 ![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-blue)
+
 
 [**Live Demo**](https://java-spring-security.vercel.app/) · [**API Docs (Swagger)**](https://authx-backend-9atg.onrender.com/swagger-ui/index.html) · [**Report a Bug**](https://github.com/Mtaijim/Authx/issues)
 
@@ -42,9 +42,7 @@
 19. [Known Limitations](#19-known-limitations)
 20. [Testing](#20-testing)
 21. [Roadmap](#21-roadmap)
-22. [Contributing](#22-contributing)
-23. [Security Policy](#23-security-policy)
-24. [Author & License](#24-author--license)
+22. [Author](#24-author--license)
 
 ---
 
@@ -104,7 +102,7 @@ AuthX is a full-stack identity platform that can sit behind any application. It 
 ### Abuse protection
 | Layer | Rule |
 |---|---|
-| IP rate limit | `POST /api/v1/auth/login`: **6 attempts / 15 min per IP** (Bucket4j) → `429` |
+| IP rate limit | `POST /api/v1/auth/login`: **5 attempts / 15 min per IP** (Bucket4j token bucket, held in an in-memory `ConcurrentHashMap` keyed by IP) → `429` |
 | Account lockout | **5 consecutive failures** → locked for **15 minutes**, alert email sent |
 | Risk scoring | See below |
 | Suspicious-login alert | Async email when the device or IP wasn't seen in the last 10 successful logins |
@@ -142,7 +140,7 @@ Levels: **LOW** ≤ 30 · **MEDIUM** ≤ 60 · **HIGH** > 60. Risky logins can r
 | Backend | Java, Spring Boot, Spring Security, Spring Data JPA (Hibernate) |
 | Database | MySQL |
 | Auth | JWT (`jjwt`, HS512), Spring OAuth2 Client, TOTP (`samstevens.totp`) |
-| Rate limiting | Bucket4j (in-memory) |
+| Rate limiting | Bucket4j (buckets in a `ConcurrentHashMap`) |
 | Email | Brevo transactional email HTTP API via `RestClient` |
 | Mapping | ModelMapper |
 | API docs | springdoc-openapi |
@@ -858,7 +856,7 @@ The bundled `application-dev.yml` is tuned for development. Before going live:
 
 ## 19. Known Limitations
 
-- **In-memory rate limiting:** buckets are per instance and reset on restart. Fine for one instance; use Redis for scale-out.
+- **In-memory rate limiting:** buckets live in a `ConcurrentHashMap` inside a single instance, so limits reset on restart and aren't shared across instances. Entries are also never evicted, so memory grows with the number of unique IPs. Fine for one instance; use Redis (or a cache with expiry) for scale-out.
 - **Only login is rate limited** in the filter. Buckets for forgot-password and register exist in `RateLimitService` but aren't enforced yet.
 - **GitHub email fallback:** when GitHub hides the user's email, a placeholder `username@github.com` is used, which can create a duplicate of an existing local account instead of linking to it.
 - **Refresh-token reuse detection** isn't implemented yet.
@@ -901,30 +899,10 @@ Run the (future) test suite with:
 - [ ] Branded HTML email templates
 - [ ] WebAuthn / passkeys
 
----
 
-## 22. Contributing
-
-Contributions are welcome.
-
-1. Fork the repository and create a branch: `git checkout -b feature/your-feature`
-2. Make your changes and keep commits focused.
-3. Run the app and the manual checklist above.
-4. Open a pull request describing what changed and why.
-
-Please open an issue first for large changes.
-
----
-
-## 23. Security Policy
-
-If you find a security vulnerability, **please don't open a public issue.** Email **your.email@example.com** with steps to reproduce and I'll respond as soon as possible.
-
----
-
-## 24. Author & License
+## 22. Author 
 
 **Your Name**
-[GitHub](https://github.com/YOUR-USERNAME) · [LinkedIn](https://linkedin.com/in/YOUR-PROFILE) · your.email@example.com
+[GitHub](https://github.com/Mtaijim) · [LinkedIn](https://linkedin.com/in/Mtaijim) 
 
-Distributed under the MIT License. See `LICENSE` for details.
+
