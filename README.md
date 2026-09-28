@@ -63,7 +63,7 @@ AuthX is a full-stack identity platform that can sit behind any application. It 
 
 | Sign in | MFA setup |
 |---|---|
-| ![Sign in](docs/screenshots/login.png) | ![MFA setup](docs/screenshots/Mfa-setup.png) |
+| ![Sign in](docs/screenshots/signup.png) | ![MFA setup](docs/screenshots/Mfa-setup.png) |
 
 | Admin dashboard | Audit log viewer |
 |---|---|
@@ -902,7 +902,7 @@ Run the (future) test suite with:
 
 ## 22. Author 
 
-**Your Name**
+**Mtaijim**
 [GitHub](https://github.com/Mtaijim) · [LinkedIn](https://linkedin.com/in/Mtaijim) 
 
 
