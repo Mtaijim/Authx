@@ -42,7 +42,7 @@
 19. [Known Limitations](#19-known-limitations)
 20. [Testing](#20-testing)
 21. [Roadmap](#21-roadmap)
-22. [Author](#24-author--license)
+22. [Author](#22-author)
 
 ---
 
