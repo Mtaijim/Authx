@@ -14,6 +14,9 @@
 
 
 [**Live Demo**](https://java-spring-security.vercel.app/) · [**API Docs (Swagger)**](https://authx-backend-9atg.onrender.com/swagger-ui/index.html) · [**Report a Bug**](https://github.com/Mtaijim/Authx/issues)
+## 🎥 Project Demo
+
+[▶️ Watch AuthX Demo on X](https://x.com/Mtaijim_/status/2104662313127276877/video/1)
 
 </div>
 
